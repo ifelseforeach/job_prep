@@ -15,6 +15,9 @@ $ git clone https://github.com/ifelseforeach/job_prep.git
 User@DESKTOP-V7DDD7CUser@DESKTOP-V7DDD7C MINGW64 /c/Job/Github/job_prep (main)
 $ git add dir_name
 
+#Git add all dirrectories
+$ git add .
+
 #Git commit
 git commit -m "name"
 
