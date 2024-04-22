@@ -1,0 +1,22 @@
+#make a directory
+mkdir
+
+#change a directory
+cd ..
+cd name
+
+ git remote add origin https://github.com/ifelseforeach/job_prep
+ 
+#cloning a dir from Github/job_prep
+User@DESKTOP-V7DDD7C MINGW64 /c/Job/Github
+$ git clone https://github.com/ifelseforeach/job_prep.git
+
+#Git add directories
+User@DESKTOP-V7DDD7CUser@DESKTOP-V7DDD7C MINGW64 /c/Job/Github/job_prep (main)
+$ git add dir_name
+
+#Git commit
+git commit -m "name"
+
+#Git Push
+ git push origin main
