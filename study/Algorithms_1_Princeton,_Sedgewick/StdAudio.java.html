@@ -1,0 +1,829 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang = "en">
+
+<head>
+
+<link rel="shortcut icon" href="https://introcs.cs.princeton.edu/favicon.ico">
+<link rel="stylesheet"    href="https://introcs.cs.princeton.edu/java.css" type="text/css">
+
+<title>StdAudio.java</title>
+
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<meta NAME="AUTHOR" CONTENT="Robert Sedgewick and Kevin Wayne">
+<meta NAME="DESCRIPTION" CONTENT="StdAudio code in Java">
+<meta NAME="TITLE" CONTENT="StdAudio code in Java">
+<meta NAME="KEYWORDS" CONTENT="StdAudio,java,programming,computer science,algorithm,program,code">
+<meta NAME="ROBOTS" CONTENT="INDEX,FOLLOW">
+
+</head>
+
+
+<body>
+<center><h1>StdAudio.java</h1></center><p><br>
+
+Below is the syntax highlighted version of <a href = "StdAudio.java">StdAudio.java</a>
+from <a href = "https://introcs.cs.princeton.edu/java/stdlib">&#167; Standard Libraries</a>.
+&nbsp; Here is the <a href = "https://introcs.cs.princeton.edu/java/stdlib/javadoc/StdAudio.html">Javadoc</a>.
+<p><br>
+
+<!-- Generator: GNU source-highlight 3.1.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span class="comment">/******************************************************************************</span>
+<span class="comment"> *  Compilation:  javac StdAudio.java</span>
+<span class="comment"> *  Execution:    java StdAudio</span>
+<span class="comment"> *  Dependencies: none</span>
+<span class="comment"> *</span>
+<span class="comment"> *  Simple library for reading, writing, and manipulating audio.</span>
+<span class="comment"> *</span>
+<span class="comment"> ******************************************************************************/</span>
+
+<span class="preproc">import</span><span class="normal"> javax</span><span class="symbol">.</span><span class="normal">sound</span><span class="symbol">.</span><span class="normal">sampled</span><span class="symbol">.</span><span class="normal">Clip</span><span class="symbol">;</span>
+
+<span class="preproc">import</span><span class="normal"> java</span><span class="symbol">.</span><span class="normal">io</span><span class="symbol">.</span><span class="normal">File</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> java</span><span class="symbol">.</span><span class="normal">io</span><span class="symbol">.</span><span class="normal">ByteArrayInputStream</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> java</span><span class="symbol">.</span><span class="normal">io</span><span class="symbol">.</span><span class="normal">InputStream</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> java</span><span class="symbol">.</span><span class="normal">io</span><span class="symbol">.</span><span class="normal">IOException</span><span class="symbol">;</span>
+
+<span class="preproc">import</span><span class="normal"> java</span><span class="symbol">.</span><span class="normal">net</span><span class="symbol">.</span><span class="normal">URI</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> java</span><span class="symbol">.</span><span class="normal">net</span><span class="symbol">.</span><span class="normal">URISyntaxException</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> java</span><span class="symbol">.</span><span class="normal">net</span><span class="symbol">.</span><span class="normal">URL</span><span class="symbol">;</span>
+
+<span class="preproc">import</span><span class="normal"> java</span><span class="symbol">.</span><span class="normal">util</span><span class="symbol">.</span><span class="normal">LinkedList</span><span class="symbol">;</span>
+
+<span class="preproc">import</span><span class="normal"> javax</span><span class="symbol">.</span><span class="normal">sound</span><span class="symbol">.</span><span class="normal">sampled</span><span class="symbol">.</span><span class="normal">AudioFileFormat</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> javax</span><span class="symbol">.</span><span class="normal">sound</span><span class="symbol">.</span><span class="normal">sampled</span><span class="symbol">.</span><span class="normal">AudioFormat</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> javax</span><span class="symbol">.</span><span class="normal">sound</span><span class="symbol">.</span><span class="normal">sampled</span><span class="symbol">.</span><span class="normal">AudioInputStream</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> javax</span><span class="symbol">.</span><span class="normal">sound</span><span class="symbol">.</span><span class="normal">sampled</span><span class="symbol">.</span><span class="normal">AudioSystem</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> javax</span><span class="symbol">.</span><span class="normal">sound</span><span class="symbol">.</span><span class="normal">sampled</span><span class="symbol">.</span><span class="normal">DataLine</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> javax</span><span class="symbol">.</span><span class="normal">sound</span><span class="symbol">.</span><span class="normal">sampled</span><span class="symbol">.</span><span class="normal">LineUnavailableException</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> javax</span><span class="symbol">.</span><span class="normal">sound</span><span class="symbol">.</span><span class="normal">sampled</span><span class="symbol">.</span><span class="normal">SourceDataLine</span><span class="symbol">;</span>
+<span class="preproc">import</span><span class="normal"> javax</span><span class="symbol">.</span><span class="normal">sound</span><span class="symbol">.</span><span class="normal">sampled</span><span class="symbol">.</span><span class="normal">UnsupportedAudioFileException</span><span class="symbol">;</span>
+
+<span class="comment">/**</span>
+<span class="comment"> *  The {</span><span class="type">@code</span><span class="comment"> StdAudio} class provides static methods for</span>
+<span class="comment"> *  playing, reading, and saving audio.</span>
+<span class="comment"> *  It uses a simple audio model that allows you</span>
+<span class="comment"> *  to send one sample to the sound card at a time.</span>
+<span class="comment"> *  Each sample is a real number between –1.0 and +1.0.</span>
+<span class="comment"> *  The samples are played in real time using a sampling</span>
+<span class="comment"> *  rate of 44,100 Hz.</span>
+<span class="comment"> *  In addition to playing individual samples, standard audio supports</span>
+<span class="comment"> *  reading, writing, and playing audio files in a variety of standard formats.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  See {</span><span class="type">@link</span><span class="comment"> StdAudioStereo} for a version that supports</span>
+<span class="comment"> *  </span><span class="keyword">&lt;em&gt;</span><span class="comment">stereo</span><span class="keyword">&lt;/em&gt;</span><span class="comment"> audio (separate left and right channels).</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;b&gt;</span><span class="comment">Getting started.</span><span class="keyword">&lt;/b&gt;</span>
+<span class="comment"> *  To use this class, you must have {</span><span class="type">@code</span><span class="comment"> StdAudio} in your Java classpath.</span>
+<span class="comment"> *  Here are three possible ways to do this:</span>
+<span class="comment"> *  </span><span class="keyword">&lt;ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> If you ran our autoinstaller, use the commands</span>
+<span class="comment"> *  {</span><span class="type">@code</span><span class="comment"> javac-introcs} and {</span><span class="type">@code</span><span class="comment"> java-introcs} (or {</span><span class="type">@code</span><span class="comment"> javac-algs4}</span>
+<span class="comment"> *  and {</span><span class="type">@code</span><span class="comment"> java-algs4}) when compiling and executing. These commands</span>
+<span class="comment"> *  add {</span><span class="type">@code</span><span class="comment"> stdlib.jar} (or {</span><span class="type">@code</span><span class="comment"> algs4.jar}) to the Java classpath, which</span>
+<span class="comment"> *  provides access to {</span><span class="type">@code</span><span class="comment"> StdAudio}.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> Download </span><span class="keyword">&lt;a</span><span class="normal"> </span><span class="type">href</span><span class="normal"> </span><span class="symbol">=</span><span class="string"> "https://introcs.cs.princeton.edu/java/code/stdlib.jar"</span><span class="keyword">&gt;</span><span class="comment">stdlib.jar</span><span class="keyword">&lt;/a&gt;</span>
+<span class="comment"> *  (or </span><span class="keyword">&lt;a</span><span class="normal"> </span><span class="type">href</span><span class="normal"> </span><span class="symbol">=</span><span class="string"> "https://algs4.cs.princeton.edu/code/algs4.jar"</span><span class="keyword">&gt;</span><span class="comment">algs4.jar</span><span class="keyword">&lt;/a&gt;</span><span class="comment">)</span>
+<span class="comment"> *  and add it to the Java classpath.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> Download </span><span class="keyword">&lt;a</span><span class="normal"> </span><span class="type">href</span><span class="normal"> </span><span class="symbol">=</span><span class="string"> "https://introcs.cs.princeton.edu/java/stdlib/StdAudio.java"</span><span class="keyword">&gt;</span><span class="comment">StdAudio.java</span><span class="keyword">&lt;/a&gt;</span>
+<span class="comment"> *  and put it in the working directory.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;/ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  As a test, cut-and-paste the following short program into your editor:</span>
+<span class="comment"> *  </span><span class="keyword">&lt;pre&gt;</span>
+<span class="comment"> *   public class TestStdAudio {</span>
+<span class="comment"> *       public static void main(String[] args) {</span>
+<span class="comment"> *           double freq = 440.0;</span>
+<span class="comment"> *           for (int i = 0; i </span><span class="preproc">&amp;lt;</span><span class="comment"> StdAudio.SAMPLE_RATE; i++) {</span>
+<span class="comment"> *               double sample = 0.5 * Math.sin(2 * Math.PI * freq * i / StdAudio.SAMPLE_RATE);</span>
+<span class="comment"> *               StdAudio.play(sample);</span>
+<span class="comment"> *           }</span>
+<span class="comment"> *           StdAudio.drain();</span>
+<span class="comment"> *       }</span>
+<span class="comment"> *   }</span>
+<span class="comment"> *  </span><span class="keyword">&lt;/pre&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  If you compile and execute the program, you should hear a pure tone</span>
+<span class="comment"> *  whose frequency is concert A (440 Hz).</span>
+<span class="comment"> *</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;b&gt;</span><span class="comment">Playing audio samples.</span><span class="keyword">&lt;/b&gt;</span>
+<span class="comment"> *  You can use the following two methods to play individual audio samples:</span>
+<span class="comment"> *  </span><span class="keyword">&lt;ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> {</span><span class="type">@link</span><span class="comment"> #play(double sample)}</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> {</span><span class="type">@link</span><span class="comment"> #play(double[] samples)}</span>
+<span class="comment"> *  </span><span class="keyword">&lt;/ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  Each method sends the specified sample (or samples) to the sound card.</span>
+<span class="comment"> *  The individual samples are real numbers between –1.0 and +1.0. If a</span>
+<span class="comment"> *  sample is outside this range, it will be </span><span class="keyword">&lt;em&gt;</span><span class="comment">clipped</span><span class="keyword">&lt;/em&gt;</span><span class="comment"> (rounded to</span>
+<span class="comment"> *  –1.0 or +1.0). The samples are played in real time using a sampling</span>
+<span class="comment"> *  rate of 44,100 Hz.</span>
+<span class="comment"> *</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;b&gt;</span><span class="comment">Playing audio files.</span><span class="keyword">&lt;/b&gt;</span>
+<span class="comment"> *  You can use the following method to play an audio file:</span>
+<span class="comment"> *  </span><span class="keyword">&lt;ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> {</span><span class="type">@link</span><span class="comment"> #play(String filename)}</span>
+<span class="comment"> *  </span><span class="keyword">&lt;/ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  It plays an audio file (in WAVE, AU, AIFF, or MIDI format) and does</span>
+<span class="comment"> *  not return until the audio file is finished playing. This can produce</span>
+<span class="comment"> *  particularly striking programs with minimal code.</span>
+<span class="comment"> *  For example, the following code fragment plays a drum loop:</span>
+<span class="comment"> *</span>
+<span class="comment"> *  </span><span class="keyword">&lt;pre&gt;</span>
+<span class="comment"> *   while (true) {</span>
+<span class="comment"> *       StdAudio.play("BassDrum.wav");</span>
+<span class="comment"> *       StdAudio.play("SnareDrum.wav");</span>
+<span class="comment"> *   }</span>
+<span class="comment"> *  </span><span class="keyword">&lt;/pre&gt;</span>
+<span class="comment"> *</span>
+<span class="comment"> *  The individual audio files</span>
+<span class="comment"> *  (such as </span><span class="keyword">&lt;a</span><span class="normal"> </span><span class="type">href</span><span class="normal"> </span><span class="symbol">=</span><span class="string"> "https://introcs.cs.princeton.edu/java/stdlib/BassDrum.wav"</span><span class="keyword">&gt;</span><span class="comment">BassDrum.wav</span><span class="keyword">&lt;/a&gt;</span>
+<span class="comment"> *  and </span><span class="keyword">&lt;a</span><span class="normal"> </span><span class="type">href</span><span class="normal"> </span><span class="symbol">=</span><span class="string"> "https://introcs.cs.princeton.edu/java/stdlib/SnareDrum.wav"</span><span class="keyword">&gt;</span><span class="comment">SnareDrum.wav</span><span class="keyword">&lt;/a&gt;</span><span class="comment">)</span>
+<span class="comment"> *  must be accessible to Java, typically</span>
+<span class="comment"> *  by being in the same directory as the {</span><span class="type">@code</span><span class="comment"> .class} file.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *</span>
+<span class="comment"> *  </span><span class="keyword">&lt;b&gt;</span><span class="comment">Reading and writing audio files.</span><span class="keyword">&lt;/b&gt;</span>
+<span class="comment"> *  You can read and write audio files using the following two methods:</span>
+<span class="comment"> *  </span><span class="keyword">&lt;ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> {</span><span class="type">@link</span><span class="comment"> #read(String filename)}</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> {</span><span class="type">@link</span><span class="comment"> #save(String filename, double[] samples)}</span>
+<span class="comment"> *  </span><span class="keyword">&lt;/ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  The first method reads audio samples from an audio file</span>
+<span class="comment"> *  (in WAVE, AU, AIFF, or MIDI format)</span>
+<span class="comment"> *  and returns them as a double array with values between –1.0 and +1.0.</span>
+<span class="comment"> *  The second method saves the audio samples in the specified double array to an</span>
+<span class="comment"> *  audio file (in WAVE, AU, or AIFF format).</span>
+<span class="comment"> *</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;b&gt;</span><span class="comment">Audio file formats.</span><span class="keyword">&lt;/b&gt;</span>
+<span class="comment"> *  {</span><span class="type">@code</span><span class="comment"> StdAudio} relies on the</span>
+<span class="comment"> *  </span><span class="keyword">&lt;a</span><span class="normal"> </span><span class="type">href</span><span class="normal"> </span><span class="symbol">=</span><span class="string"> "https://www.oracle.com/java/technologies/javase/jmf-211-formats.html"</span><span class="keyword">&gt;</span><span class="comment">Java Media Framework</span><span class="keyword">&lt;/a&gt;</span>
+<span class="comment"> *  for reading, writing, and playing audio files. You should be able to read or play files</span>
+<span class="comment"> *  in WAVE, AU, AIFF, and MIDI formats and save them to WAVE, AU, and AIFF formats.</span>
+<span class="comment"> *  The file extensions corresponding to WAVE, AU, AIFF, and MIDI files</span>
+<span class="comment"> *  are {</span><span class="type">@code</span><span class="comment"> .wav}, {</span><span class="type">@code</span><span class="comment"> .au}, {</span><span class="type">@code</span><span class="comment"> .aiff}, and {</span><span class="type">@code</span><span class="comment"> .midi},</span>
+<span class="comment"> *  respectively.</span>
+<span class="comment"> *  Some systems support additional audio file formats, but probably not MP3 or M4A.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  The Java Media Framework supports a variety of different </span><span class="keyword">&lt;em&gt;</span><span class="comment">audio data formats</span><span class="keyword">&lt;/em&gt;</span><span class="comment">,</span>
+<span class="comment"> *  which includes</span>
+<span class="comment"> *  </span><span class="keyword">&lt;ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;Li&gt;</span><span class="comment"> the sampling rate (e.g., 44,100 Hz);</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> the number of bits per sample per channel (e.g., 8-bit or 16-bit);</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> the number of channels (e.g., monaural or stereo);</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> the byte ordering (e.g., little endian or big endian); and</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> the encoding scheme (typically linear PCM).</span>
+<span class="comment"> *  </span><span class="keyword">&lt;/ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  When saving files, {</span><span class="type">@code</span><span class="comment"> StdAudio} uses a sampling rate of 44,100 Hz,</span>
+<span class="comment"> *  16 bits per sample, monaural audio, little endian, and linear PCM encoding.</span>
+<span class="comment"> *  When reading files, {</span><span class="type">@code</span><span class="comment"> StdAudio} converts to a sammpling rate of 44,100 Hz,</span>
+<span class="comment"> *  with 16 bits per sample.</span>
+<span class="comment"> *</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;b&gt;</span><span class="comment">Recording audio.</span><span class="keyword">&lt;/b&gt;</span>
+<span class="comment"> *  You can use the following methods to record audio samples that are</span>
+<span class="comment"> *  played as a result of calls to {</span><span class="type">@link</span><span class="comment"> #play(double sample)} or</span>
+<span class="comment"> *  {</span><span class="type">@link</span><span class="comment"> #play(double[] samples)}.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> {</span><span class="type">@link</span><span class="comment"> #startRecording()}</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> {</span><span class="type">@link</span><span class="comment"> #stopRecording()}</span>
+<span class="comment"> *  </span><span class="keyword">&lt;/ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  The method {</span><span class="type">@code</span><span class="comment"> startRecording()} begins recording audio.</span>
+<span class="comment"> *  The method {</span><span class="type">@code</span><span class="comment"> stopRecording()} stops recording and returns the recorded</span>
+<span class="comment"> *  samples as an array of doubles.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  {</span><span class="type">@code</span><span class="comment"> StdAudio} does not currently support recording audio that calls</span>
+<span class="comment"> *  {</span><span class="type">@code</span><span class="comment"> playInBackground()}.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;b&gt;</span><span class="comment">Playing audio files in a background thread.</span><span class="keyword">&lt;/b&gt;</span>
+<span class="comment"> *  You can use the following methods to play an audio file in a background thread</span>
+<span class="comment"> *  (e.g., as a background score in your program).</span>
+<span class="comment"> *  </span><span class="keyword">&lt;ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> {</span><span class="type">@link</span><span class="comment"> #playInBackground(String filename)}</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> {</span><span class="type">@link</span><span class="comment"> #stopInBackground()}</span>
+<span class="comment"> *  </span><span class="keyword">&lt;/ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  Each call to the first method plays the specified sound in a separate background</span>
+<span class="comment"> *  thread. Unlike with the {</span><span class="type">@code</span><span class="comment"> play()} methods, your program will not wait</span>
+<span class="comment"> *  for the samples to finish playing before continuing.</span>
+<span class="comment"> *  It supports playing an audio file in WAVE, AU, AIFF, or MIDI format.</span>
+<span class="comment"> *  It is possible to play</span>
+<span class="comment"> *  multiple audio files simultaneously (in separate background threads).</span>
+<span class="comment"> *  The second method stops the playing of all audio in background threads.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;b&gt;</span><span class="comment">Draining standard audio.</span><span class="keyword">&lt;/b&gt;</span>
+<span class="comment"> *  On some systems, your Java program may terminate before all of the samples have been</span>
+<span class="comment"> *  sent to the sound card. To prevent this, it is recommend that you call the</span>
+<span class="comment"> *  following method to indicate that you are done using standard audio:</span>
+<span class="comment"> *  </span><span class="keyword">&lt;ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;li&gt;</span><span class="comment"> {</span><span class="type">@link</span><span class="comment"> #drain()}</span>
+<span class="comment"> *  </span><span class="keyword">&lt;/ul&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  The method drains any samples queued to the sound card that have not yet been</span>
+<span class="comment"> *  sent to the sound card.</span>
+<span class="comment"> *  </span><span class="keyword">&lt;p&gt;</span>
+<span class="comment"> *  </span><span class="keyword">&lt;b&gt;</span><span class="comment">Reference.</span><span class="keyword">&lt;/b&gt;</span>
+<span class="comment"> *  For additional documentation,</span>
+<span class="comment"> *  see </span><span class="keyword">&lt;a</span><span class="normal"> </span><span class="type">href</span><span class="symbol">=</span><span class="string">"https://introcs.cs.princeton.edu/15inout"</span><span class="keyword">&gt;</span><span class="comment">Section 1.5</span><span class="keyword">&lt;/a&gt;</span><span class="comment"> of</span>
+<span class="comment"> *  </span><span class="keyword">&lt;em&gt;</span><span class="comment">Computer Science: An Interdisciplinary Approach</span><span class="keyword">&lt;/em&gt;</span>
+<span class="comment"> *  by Robert Sedgewick and Kevin Wayne.</span>
+<span class="comment"> *</span>
+<span class="comment"> *  </span><span class="type">@author</span><span class="comment"> Robert Sedgewick</span>
+<span class="comment"> *  </span><span class="type">@author</span><span class="comment"> Kevin Wayne</span>
+<span class="comment"> */</span>
+<span class="keyword">public</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="keyword">class</span><span class="normal"> </span><span class="classname">StdAudio</span><span class="normal"> </span><span class="cbracket">{</span>
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     *  The sample rate: 44,100 Hz for CD quality audio.</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">int</span><span class="normal"> SAMPLE_RATE </span><span class="symbol">=</span><span class="normal"> </span><span class="number">44100</span><span class="symbol">;</span>
+
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">int</span><span class="normal"> BYTES_PER_SAMPLE </span><span class="symbol">=</span><span class="normal"> </span><span class="number">2</span><span class="symbol">;</span><span class="normal">       </span><span class="comment">// 16-bit audio</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">int</span><span class="normal"> BITS_PER_SAMPLE </span><span class="symbol">=</span><span class="normal"> </span><span class="number">16</span><span class="symbol">;</span><span class="normal">       </span><span class="comment">// 16-bit audio</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">int</span><span class="normal"> MAX_16_BIT </span><span class="symbol">=</span><span class="normal"> </span><span class="number">32768</span><span class="symbol">;</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">int</span><span class="normal"> SAMPLE_BUFFER_SIZE </span><span class="symbol">=</span><span class="normal"> </span><span class="number">4096</span><span class="symbol">;</span>
+
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">int</span><span class="normal"> MONAURAL </span><span class="symbol">=</span><span class="normal"> </span><span class="number">1</span><span class="symbol">;</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">int</span><span class="normal"> STEREO </span><span class="symbol">=</span><span class="normal"> </span><span class="number">2</span><span class="symbol">;</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">boolean</span><span class="normal"> LITTLE_ENDIAN </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">false</span><span class="symbol">;</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">boolean</span><span class="normal"> BIG_ENDIAN    </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">true</span><span class="symbol">;</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">boolean</span><span class="normal"> SIGNED        </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">true</span><span class="symbol">;</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">boolean</span><span class="normal"> UNSIGNED      </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">false</span><span class="symbol">;</span>
+
+
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="usertype">SourceDataLine</span><span class="normal"> line</span><span class="symbol">;</span><span class="normal">   </span><span class="comment">// to play the sound</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">byte</span><span class="symbol">[]</span><span class="normal"> buffer</span><span class="symbol">;</span><span class="normal">         </span><span class="comment">// our internal buffer</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">int</span><span class="normal"> bufferSize </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal">    </span><span class="comment">// number of samples currently in internal buffer</span>
+
+<span class="normal">    </span><span class="comment">// queue of background Runnable objects</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="usertype">LinkedList&lt;BackgroundRunnable&gt;</span><span class="normal"> backgroundRunnables </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> LinkedList</span><span class="symbol">&lt;&gt;();</span>
+
+<span class="normal">    </span><span class="comment">// for recording audio</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="usertype">QueueOfDoubles</span><span class="normal"> recordedSamples </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">;</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">boolean</span><span class="normal"> isRecording </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">false</span><span class="symbol">;</span>
+
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="function">StdAudio</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="comment">// can not instantiate</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="comment">// static initializer</span>
+<span class="normal">    </span><span class="keyword">static</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="function">init</span><span class="symbol">();</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="comment">// open up an audio stream</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">init</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">try</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="comment">// 44,100 Hz, 16-bit audio, monaural, signed PCM, little endian</span>
+<span class="normal">            </span><span class="usertype">AudioFormat</span><span class="normal"> format </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">AudioFormat</span><span class="symbol">((</span><span class="type">float</span><span class="symbol">)</span><span class="normal"> SAMPLE_RATE</span><span class="symbol">,</span><span class="normal"> BITS_PER_SAMPLE</span><span class="symbol">,</span><span class="normal"> MONAURAL</span><span class="symbol">,</span><span class="normal"> SIGNED</span><span class="symbol">,</span><span class="normal"> LITTLE_ENDIAN</span><span class="symbol">);</span>
+<span class="normal">            DataLine</span><span class="symbol">.</span><span class="usertype">Info</span><span class="normal"> info </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> DataLine</span><span class="symbol">.</span><span class="function">Info</span><span class="symbol">(</span><span class="normal">SourceDataLine</span><span class="symbol">.</span><span class="keyword">class</span><span class="symbol">,</span><span class="normal"> format</span><span class="symbol">);</span>
+
+<span class="normal">            line </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">SourceDataLine</span><span class="symbol">)</span><span class="normal"> AudioSystem</span><span class="symbol">.</span><span class="function">getLine</span><span class="symbol">(</span><span class="normal">info</span><span class="symbol">);</span>
+<span class="normal">            line</span><span class="symbol">.</span><span class="function">open</span><span class="symbol">(</span><span class="normal">format</span><span class="symbol">,</span><span class="normal"> SAMPLE_BUFFER_SIZE </span><span class="symbol">*</span><span class="normal"> BYTES_PER_SAMPLE</span><span class="symbol">);</span>
+
+<span class="normal">            </span><span class="comment">// the internal buffer is a fraction of the actual buffer size, this choice is arbitrary</span>
+<span class="normal">            </span><span class="comment">// it gets divided because we can't expect the buffered data to line up exactly with when</span>
+<span class="normal">            </span><span class="comment">// the sound card decides to push out its samples.</span>
+<span class="normal">            buffer </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="type">byte</span><span class="symbol">[</span><span class="normal">SAMPLE_BUFFER_SIZE </span><span class="symbol">*</span><span class="normal"> BYTES_PER_SAMPLE</span><span class="symbol">/</span><span class="number">3</span><span class="symbol">];</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">catch</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">LineUnavailableException</span><span class="normal"> e</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            System</span><span class="symbol">.</span><span class="normal">out</span><span class="symbol">.</span><span class="function">println</span><span class="symbol">(</span><span class="normal">e</span><span class="symbol">.</span><span class="function">getMessage</span><span class="symbol">());</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="comment">// no sound gets made before this call</span>
+<span class="normal">        line</span><span class="symbol">.</span><span class="function">start</span><span class="symbol">();</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="comment">// get an AudioInputStream object from a file</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="usertype">AudioInputStream</span><span class="normal"> </span><span class="function">getAudioInputStreamFromFile</span><span class="symbol">(</span><span class="usertype">String</span><span class="normal"> filename</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename </span><span class="symbol">==</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"filename is null"</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="keyword">try</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="comment">// first try to read file from local file system</span>
+<span class="normal">            </span><span class="usertype">File</span><span class="normal"> file </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">File</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">file</span><span class="symbol">.</span><span class="function">exists</span><span class="symbol">())</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="keyword">return</span><span class="normal"> AudioSystem</span><span class="symbol">.</span><span class="function">getAudioInputStream</span><span class="symbol">(</span><span class="normal">file</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+
+<span class="normal">            </span><span class="comment">// resource relative to .class file</span>
+<span class="normal">            </span><span class="usertype">InputStream</span><span class="normal"> is1 </span><span class="symbol">=</span><span class="normal"> StdAudio</span><span class="symbol">.</span><span class="keyword">class</span><span class="symbol">.</span><span class="function">getResourceAsStream</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">is1 </span><span class="symbol">!=</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="keyword">return</span><span class="normal"> AudioSystem</span><span class="symbol">.</span><span class="function">getAudioInputStream</span><span class="symbol">(</span><span class="normal">is1</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+
+<span class="normal">            </span><span class="comment">// resource relative to classloader root</span>
+<span class="normal">            </span><span class="usertype">InputStream</span><span class="normal"> is2 </span><span class="symbol">=</span><span class="normal"> StdAudio</span><span class="symbol">.</span><span class="keyword">class</span><span class="symbol">.</span><span class="function">getClassLoader</span><span class="symbol">().</span><span class="function">getResourceAsStream</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">is2 </span><span class="symbol">!=</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="keyword">return</span><span class="normal"> AudioSystem</span><span class="symbol">.</span><span class="function">getAudioInputStream</span><span class="symbol">(</span><span class="normal">is2</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+
+<span class="normal">            </span><span class="comment">// from URL (including jar file)</span>
+<span class="normal">            </span><span class="usertype">URI</span><span class="normal"> uri </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">URI</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">uri</span><span class="symbol">.</span><span class="function">isAbsolute</span><span class="symbol">())</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="usertype">URL</span><span class="normal"> url </span><span class="symbol">=</span><span class="normal"> uri</span><span class="symbol">.</span><span class="function">toURL</span><span class="symbol">();</span>
+<span class="normal">                </span><span class="keyword">return</span><span class="normal"> AudioSystem</span><span class="symbol">.</span><span class="function">getAudioInputStream</span><span class="symbol">(</span><span class="normal">url</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">            </span><span class="keyword">else</span><span class="normal"> </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"could not read audio file '"</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> filename </span><span class="symbol">+</span><span class="normal"> </span><span class="string">"'"</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">catch</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">IOException </span><span class="symbol">|</span><span class="normal"> </span><span class="usertype">URISyntaxException</span><span class="normal"> e</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"could not read audio file '"</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> filename </span><span class="symbol">+</span><span class="normal"> </span><span class="string">"'"</span><span class="symbol">,</span><span class="normal"> e</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">catch</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">UnsupportedAudioFileException</span><span class="normal"> e</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"file of unsupported audio file format: '"</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> filename </span><span class="symbol">+</span><span class="normal"> </span><span class="string">"'"</span><span class="symbol">,</span><span class="normal"> e</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Sends any queued samples to the sound card.</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">drain</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">bufferSize </span><span class="symbol">&gt;</span><span class="normal"> </span><span class="number">0</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            line</span><span class="symbol">.</span><span class="function">write</span><span class="symbol">(</span><span class="normal">buffer</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> bufferSize</span><span class="symbol">);</span>
+<span class="normal">            bufferSize </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        line</span><span class="symbol">.</span><span class="function">drain</span><span class="symbol">();</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Closes standard audio.</span>
+<span class="comment">     */</span>
+<span class="comment">/*</span>
+<span class="comment">    public static void close() {</span>
+<span class="comment">        drain();</span>
+<span class="comment">        line.stop();</span>
+<span class="comment">    }</span>
+<span class="comment">*/</span>
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Writes one sample (between –1.0 and +1.0) to standard audio.</span>
+<span class="comment">     * If the sample is outside the range, it will be clipped</span>
+<span class="comment">     * (rounded to –1.0 or +1.0).</span>
+<span class="comment">     *</span>
+<span class="comment">     * </span><span class="type">@param</span><span class="comment">  sample the sample to play</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if the sample is {</span><span class="type">@code</span><span class="comment"> Double.NaN}</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">play</span><span class="symbol">(</span><span class="type">double</span><span class="normal"> sample</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">Double</span><span class="symbol">.</span><span class="function">isNaN</span><span class="symbol">(</span><span class="normal">sample</span><span class="symbol">))</span><span class="normal"> </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"sample is NaN"</span><span class="symbol">);</span>
+
+<span class="normal">        </span><span class="comment">// clip if outside [-1, +1]</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">sample </span><span class="symbol">&lt;</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1.0</span><span class="symbol">)</span><span class="normal"> sample </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1.0</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">sample </span><span class="symbol">&gt;</span><span class="normal"> </span><span class="symbol">+</span><span class="number">1.0</span><span class="symbol">)</span><span class="normal"> sample </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">+</span><span class="number">1.0</span><span class="symbol">;</span>
+
+<span class="normal">        </span><span class="comment">// save sample if recording</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">isRecording</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            recordedSamples</span><span class="symbol">.</span><span class="function">enqueue</span><span class="symbol">(</span><span class="normal">sample</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="comment">// convert to bytes</span>
+<span class="normal">        </span><span class="type">short</span><span class="normal"> s </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="type">short</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">MAX_16_BIT </span><span class="symbol">*</span><span class="normal"> sample</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">sample </span><span class="symbol">==</span><span class="normal"> </span><span class="number">1.0</span><span class="symbol">)</span><span class="normal"> s </span><span class="symbol">=</span><span class="normal"> Short</span><span class="symbol">.</span><span class="normal">MAX_VALUE</span><span class="symbol">;</span><span class="normal">   </span><span class="comment">// special case since 32768 not a short</span>
+<span class="normal">        buffer</span><span class="symbol">[</span><span class="normal">bufferSize</span><span class="symbol">++]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="type">byte</span><span class="symbol">)</span><span class="normal"> s</span><span class="symbol">;</span>
+<span class="normal">        buffer</span><span class="symbol">[</span><span class="normal">bufferSize</span><span class="symbol">++]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="type">byte</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s </span><span class="symbol">&gt;&gt;</span><span class="normal"> </span><span class="number">8</span><span class="symbol">);</span><span class="normal">   </span><span class="comment">// little endian</span>
+
+<span class="normal">        </span><span class="comment">// send to sound card if buffer is full</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">bufferSize </span><span class="symbol">&gt;=</span><span class="normal"> buffer</span><span class="symbol">.</span><span class="normal">length</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            line</span><span class="symbol">.</span><span class="function">write</span><span class="symbol">(</span><span class="normal">buffer</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> buffer</span><span class="symbol">.</span><span class="normal">length</span><span class="symbol">);</span>
+<span class="normal">            bufferSize </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Writes the array of samples (between –1.0 and +1.0) to standard audio.</span>
+<span class="comment">     * If a sample is outside the range, it will be clipped.</span>
+<span class="comment">     *</span>
+<span class="comment">     * </span><span class="type">@param</span><span class="comment">  samples the array of samples to play</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if any sample is {</span><span class="type">@code</span><span class="comment"> Double.NaN}</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if {</span><span class="type">@code</span><span class="comment"> samples} is {</span><span class="type">@code</span><span class="comment"> null}</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">play</span><span class="symbol">(</span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> samples</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">samples </span><span class="symbol">==</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">)</span><span class="normal"> </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"argument to play() is null"</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> samples</span><span class="symbol">.</span><span class="normal">length</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="function">play</span><span class="symbol">(</span><span class="normal">samples</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Plays an audio file (in WAVE, AU, AIFF, or MIDI format) and waits for it to finish.</span>
+<span class="comment">     * The file extension must be either {</span><span class="type">@code</span><span class="comment"> .wav}, {</span><span class="type">@code</span><span class="comment"> .au},</span>
+<span class="comment">     * or {</span><span class="type">@code</span><span class="comment"> .aiff}.</span>
+<span class="comment">     *</span>
+<span class="comment">     * </span><span class="type">@param</span><span class="comment"> filename the name of the audio file</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if unable to play {</span><span class="type">@code</span><span class="comment"> filename}</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if {</span><span class="type">@code</span><span class="comment"> filename} is {</span><span class="type">@code</span><span class="comment"> null}</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">play</span><span class="symbol">(</span><span class="usertype">String</span><span class="normal"> filename</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+
+<span class="normal">        </span><span class="comment">// may not work for streaming file formats</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">isRecording</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> samples </span><span class="symbol">=</span><span class="normal"> </span><span class="function">read</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="type">double</span><span class="normal"> sample </span><span class="symbol">:</span><span class="normal"> samples</span><span class="symbol">)</span>
+<span class="normal">                recordedSamples</span><span class="symbol">.</span><span class="function">enqueue</span><span class="symbol">(</span><span class="normal">sample</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="usertype">AudioInputStream</span><span class="normal"> ais </span><span class="symbol">=</span><span class="normal"> </span><span class="function">getAudioInputStreamFromFile</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="usertype">SourceDataLine</span><span class="normal"> line </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="type">int</span><span class="normal"> BUFFER_SIZE </span><span class="symbol">=</span><span class="normal"> </span><span class="number">4096</span><span class="symbol">;</span><span class="normal"> </span><span class="comment">// 4K buffer</span>
+<span class="normal">        </span><span class="keyword">try</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="usertype">AudioFormat</span><span class="normal"> audioFormat </span><span class="symbol">=</span><span class="normal"> ais</span><span class="symbol">.</span><span class="function">getFormat</span><span class="symbol">();</span>
+<span class="normal">            DataLine</span><span class="symbol">.</span><span class="usertype">Info</span><span class="normal"> info </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> DataLine</span><span class="symbol">.</span><span class="function">Info</span><span class="symbol">(</span><span class="normal">SourceDataLine</span><span class="symbol">.</span><span class="keyword">class</span><span class="symbol">,</span><span class="normal"> audioFormat</span><span class="symbol">);</span>
+<span class="normal">            line </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">SourceDataLine</span><span class="symbol">)</span><span class="normal"> AudioSystem</span><span class="symbol">.</span><span class="function">getLine</span><span class="symbol">(</span><span class="normal">info</span><span class="symbol">);</span>
+<span class="normal">            line</span><span class="symbol">.</span><span class="function">open</span><span class="symbol">(</span><span class="normal">audioFormat</span><span class="symbol">);</span>
+<span class="normal">            line</span><span class="symbol">.</span><span class="function">start</span><span class="symbol">();</span>
+<span class="normal">            </span><span class="type">byte</span><span class="symbol">[]</span><span class="normal"> samples </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="type">byte</span><span class="symbol">[</span><span class="normal">BUFFER_SIZE</span><span class="symbol">];</span>
+<span class="normal">            </span><span class="type">int</span><span class="normal"> count</span><span class="symbol">;</span>
+<span class="normal">            </span><span class="keyword">while</span><span class="normal"> </span><span class="symbol">((</span><span class="normal">count </span><span class="symbol">=</span><span class="normal"> ais</span><span class="symbol">.</span><span class="function">read</span><span class="symbol">(</span><span class="normal">samples</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> BUFFER_SIZE</span><span class="symbol">))</span><span class="normal"> </span><span class="symbol">!=</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                line</span><span class="symbol">.</span><span class="function">write</span><span class="symbol">(</span><span class="normal">samples</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> count</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">catch</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">IOException </span><span class="symbol">|</span><span class="normal"> </span><span class="usertype">LineUnavailableException</span><span class="normal"> e</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            System</span><span class="symbol">.</span><span class="normal">out</span><span class="symbol">.</span><span class="function">println</span><span class="symbol">(</span><span class="normal">e</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">finally</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">line </span><span class="symbol">!=</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                line</span><span class="symbol">.</span><span class="function">drain</span><span class="symbol">();</span>
+<span class="normal">                line</span><span class="symbol">.</span><span class="function">close</span><span class="symbol">();</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Reads audio samples from a file (in WAVE, AU, AIFF, or MIDI format)</span>
+<span class="comment">     * and returns them as a double array with values between –1.0 and +1.0.</span>
+<span class="comment">     * The file extension must be either {</span><span class="type">@code</span><span class="comment"> .wav}, {</span><span class="type">@code</span><span class="comment"> .au},</span>
+<span class="comment">     * or {</span><span class="type">@code</span><span class="comment"> .aiff}.</span>
+<span class="comment">     *</span>
+<span class="comment">     * </span><span class="type">@param</span><span class="comment">  filename the name of the audio file</span>
+<span class="comment">     * </span><span class="type">@return</span><span class="comment"> the array of samples</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> </span><span class="function">read</span><span class="symbol">(</span><span class="usertype">String</span><span class="normal"> filename</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="comment">// 4K buffer (must be a multiple of 2 for monaural or 4 for stereo)</span>
+<span class="normal">        </span><span class="type">int</span><span class="normal"> READ_BUFFER_SIZE </span><span class="symbol">=</span><span class="normal"> </span><span class="number">4096</span><span class="symbol">;</span>
+
+<span class="normal">        </span><span class="comment">// create AudioInputStream from file</span>
+<span class="normal">        </span><span class="usertype">AudioInputStream</span><span class="normal"> fromAudioInputStream </span><span class="symbol">=</span><span class="normal"> </span><span class="function">getAudioInputStreamFromFile</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="usertype">AudioFormat</span><span class="normal"> fromAudioFormat </span><span class="symbol">=</span><span class="normal"> fromAudioInputStream</span><span class="symbol">.</span><span class="function">getFormat</span><span class="symbol">();</span>
+
+<span class="normal">        </span><span class="comment">// normalize AudioInputStream to 44,100 Hz, 16-bit audio, monaural, signed PCM, little endian</span>
+<span class="normal">        </span><span class="comment">// https://docs.oracle.com/javase/tutorial/sound/converters.html</span>
+<span class="normal">        </span><span class="usertype">AudioFormat</span><span class="normal"> toAudioFormat </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">AudioFormat</span><span class="symbol">((</span><span class="type">float</span><span class="symbol">)</span><span class="normal"> SAMPLE_RATE</span><span class="symbol">,</span><span class="normal"> BITS_PER_SAMPLE</span><span class="symbol">,</span><span class="normal"> MONAURAL</span><span class="symbol">,</span><span class="normal"> SIGNED</span><span class="symbol">,</span><span class="normal"> LITTLE_ENDIAN</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">AudioSystem</span><span class="symbol">.</span><span class="function">isConversionSupported</span><span class="symbol">(</span><span class="normal">toAudioFormat</span><span class="symbol">,</span><span class="normal"> fromAudioFormat</span><span class="symbol">))</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"system cannot convert from "</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> fromAudioFormat </span><span class="symbol">+</span><span class="normal"> </span><span class="string">" to "</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> toAudioFormat</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="usertype">AudioInputStream</span><span class="normal"> toAudioInputStream </span><span class="symbol">=</span><span class="normal"> AudioSystem</span><span class="symbol">.</span><span class="function">getAudioInputStream</span><span class="symbol">(</span><span class="normal">toAudioFormat</span><span class="symbol">,</span><span class="normal"> fromAudioInputStream</span><span class="symbol">);</span>
+
+<span class="normal">        </span><span class="comment">// extract the audio data and convert to a double[] with each sample between -1 and +1</span>
+<span class="normal">        </span><span class="keyword">try</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="usertype">QueueOfDoubles</span><span class="normal"> queue </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">QueueOfDoubles</span><span class="symbol">();</span>
+<span class="normal">            </span><span class="type">byte</span><span class="symbol">[]</span><span class="normal"> bytes </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="type">byte</span><span class="symbol">[</span><span class="normal">READ_BUFFER_SIZE</span><span class="symbol">];</span>
+<span class="normal">            </span><span class="type">int</span><span class="normal"> count</span><span class="symbol">;</span>
+<span class="normal">            </span><span class="keyword">while</span><span class="normal"> </span><span class="symbol">((</span><span class="normal">count </span><span class="symbol">=</span><span class="normal"> toAudioInputStream</span><span class="symbol">.</span><span class="function">read</span><span class="symbol">(</span><span class="normal">bytes</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> READ_BUFFER_SIZE</span><span class="symbol">))</span><span class="normal"> </span><span class="symbol">!=</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+
+<span class="normal">                </span><span class="comment">// little endian, monaural</span>
+<span class="normal">                </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> count</span><span class="symbol">/</span><span class="number">2</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                    </span><span class="type">double</span><span class="normal"> sample </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">((</span><span class="type">short</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">(((</span><span class="normal">bytes</span><span class="symbol">[</span><span class="number">2</span><span class="symbol">*</span><span class="normal">i</span><span class="symbol">+</span><span class="number">1</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal"> </span><span class="number">0xFF</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">&lt;&lt;</span><span class="normal"> </span><span class="number">8</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">|</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">bytes</span><span class="symbol">[</span><span class="number">2</span><span class="symbol">*</span><span class="normal">i</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal"> </span><span class="number">0xFF</span><span class="symbol">)))</span><span class="normal"> </span><span class="symbol">/</span><span class="normal"> </span><span class="symbol">((</span><span class="type">double</span><span class="symbol">)</span><span class="normal"> MAX_16_BIT</span><span class="symbol">);</span>
+<span class="normal">                    queue</span><span class="symbol">.</span><span class="function">enqueue</span><span class="symbol">(</span><span class="normal">sample</span><span class="symbol">);</span>
+<span class="normal">                </span><span class="cbracket">}</span>
+
+<span class="normal">                </span><span class="comment">// little endian, stereo (perhaps, for a future version that supports stereo)</span>
+<span class="normal">                </span><span class="comment">/*</span>
+<span class="comment">                for (int i = 0; i &lt; count/4; i++) {</span>
+<span class="comment">                    double left  = ((short) (((bytes[4*i + 1] &amp; 0xFF) &lt;&lt; 8) | (bytes[4*i + 0] &amp; 0xFF))) / ((double) MAX_16_BIT);</span>
+<span class="comment">                    double right = ((short) (((bytes[4*i + 3] &amp; 0xFF) &lt;&lt; 8) | (bytes[4*i + 2] &amp; 0xFF))) / ((double) MAX_16_BIT);</span>
+<span class="comment">                    double sample = (left + right) / 2.0;</span>
+<span class="comment">                    queue.enqueue(sample);</span>
+<span class="comment">                }</span>
+<span class="comment">                */</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">            toAudioInputStream</span><span class="symbol">.</span><span class="function">close</span><span class="symbol">();</span>
+<span class="normal">            fromAudioInputStream</span><span class="symbol">.</span><span class="function">close</span><span class="symbol">();</span>
+<span class="normal">            </span><span class="keyword">return</span><span class="normal"> queue</span><span class="symbol">.</span><span class="function">toArray</span><span class="symbol">();</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">catch</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">IOException</span><span class="normal"> ioe</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"could not read audio file '"</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> filename </span><span class="symbol">+</span><span class="normal"> </span><span class="string">"'"</span><span class="symbol">,</span><span class="normal"> ioe</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Saves the audio samples as an audio file (using WAV, AU, or AIFF format).</span>
+<span class="comment">     * The file extension must be either {</span><span class="type">@code</span><span class="comment"> .wav}, {</span><span class="type">@code</span><span class="comment"> .au},</span>
+<span class="comment">     * or {</span><span class="type">@code</span><span class="comment"> .aiff}.</span>
+<span class="comment">     * The format uses a sampling rate of 44,100 Hz, 16-bit audio,</span>
+<span class="comment">     * monaural, signed PCM, ands little Endian.</span>
+<span class="comment">     *</span>
+<span class="comment">     * </span><span class="type">@param</span><span class="comment">  filename the name of the audio file</span>
+<span class="comment">     * </span><span class="type">@param</span><span class="comment">  samples the array of samples</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if unable to save {</span><span class="type">@code</span><span class="comment"> filename}</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if {</span><span class="type">@code</span><span class="comment"> samples} is {</span><span class="type">@code</span><span class="comment"> null}</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if {</span><span class="type">@code</span><span class="comment"> filename} is {</span><span class="type">@code</span><span class="comment"> null}</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if {</span><span class="type">@code</span><span class="comment"> filename} is the empty string</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if {</span><span class="type">@code</span><span class="comment"> filename} extension is not</span>
+<span class="comment">     *         {</span><span class="type">@code</span><span class="comment"> .wav}, {</span><span class="type">@code</span><span class="comment"> .au}, or {</span><span class="type">@code</span><span class="comment"> .aiff}.</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">save</span><span class="symbol">(</span><span class="usertype">String</span><span class="normal"> filename</span><span class="symbol">,</span><span class="normal"> </span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> samples</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename </span><span class="symbol">==</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"filename is null"</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">samples </span><span class="symbol">==</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"samples[] is null"</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">.</span><span class="function">length</span><span class="symbol">()</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span><span class="number">0</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"argument to save() is the empty string"</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="comment">// assumes 16-bit samples with sample rate = 44,100 Hz</span>
+<span class="normal">        </span><span class="comment">// use 16-bit audio, monaural, signed PCM, little Endian</span>
+<span class="normal">        </span><span class="usertype">AudioFormat</span><span class="normal"> format </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">AudioFormat</span><span class="symbol">(</span><span class="normal">SAMPLE_RATE</span><span class="symbol">,</span><span class="normal"> </span><span class="number">16</span><span class="symbol">,</span><span class="normal"> MONAURAL</span><span class="symbol">,</span><span class="normal"> SIGNED</span><span class="symbol">,</span><span class="normal"> LITTLE_ENDIAN</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="type">byte</span><span class="symbol">[]</span><span class="normal"> data </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="type">byte</span><span class="symbol">[</span><span class="number">2</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> samples</span><span class="symbol">.</span><span class="normal">length</span><span class="symbol">];</span>
+<span class="normal">        </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> samples</span><span class="symbol">.</span><span class="normal">length</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="type">int</span><span class="normal"> temp </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="type">short</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">samples</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> MAX_16_BIT</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">samples</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span><span class="number">1.0</span><span class="symbol">)</span><span class="normal"> temp </span><span class="symbol">=</span><span class="normal"> Short</span><span class="symbol">.</span><span class="normal">MAX_VALUE</span><span class="symbol">;</span><span class="normal">   </span><span class="comment">// special case since 32768 not a short</span>
+<span class="normal">            data</span><span class="symbol">[</span><span class="number">2</span><span class="symbol">*</span><span class="normal">i </span><span class="symbol">+</span><span class="normal"> </span><span class="number">0</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="type">byte</span><span class="symbol">)</span><span class="normal"> temp</span><span class="symbol">;</span>
+<span class="normal">            data</span><span class="symbol">[</span><span class="number">2</span><span class="symbol">*</span><span class="normal">i </span><span class="symbol">+</span><span class="normal"> </span><span class="number">1</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="type">byte</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">temp </span><span class="symbol">&gt;&gt;</span><span class="normal"> </span><span class="number">8</span><span class="symbol">);</span><span class="normal">   </span><span class="comment">// little endian</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+
+<span class="normal">        </span><span class="comment">// now save the file</span>
+<span class="normal">        </span><span class="keyword">try</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">ByteArrayInputStream</span><span class="normal"> bais </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">ByteArrayInputStream</span><span class="symbol">(</span><span class="normal">data</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="usertype">AudioInputStream</span><span class="normal"> ais </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">AudioInputStream</span><span class="symbol">(</span><span class="normal">bais</span><span class="symbol">,</span><span class="normal"> format</span><span class="symbol">,</span><span class="normal"> samples</span><span class="symbol">.</span><span class="normal">length</span><span class="symbol">))</span><span class="normal"> </span><span class="cbracket">{</span>
+
+<span class="normal">            </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">.</span><span class="function">endsWith</span><span class="symbol">(</span><span class="string">".wav"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">||</span><span class="normal"> filename</span><span class="symbol">.</span><span class="function">endsWith</span><span class="symbol">(</span><span class="string">".WAV"</span><span class="symbol">))</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">AudioSystem</span><span class="symbol">.</span><span class="function">isFileTypeSupported</span><span class="symbol">(</span><span class="normal">AudioFileFormat</span><span class="symbol">.</span><span class="normal">Type</span><span class="symbol">.</span><span class="normal">WAVE</span><span class="symbol">,</span><span class="normal"> ais</span><span class="symbol">))</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                    </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"saving to WAVE file format is not supported on this system"</span><span class="symbol">);</span>
+<span class="normal">                </span><span class="cbracket">}</span>
+<span class="normal">                AudioSystem</span><span class="symbol">.</span><span class="function">write</span><span class="symbol">(</span><span class="normal">ais</span><span class="symbol">,</span><span class="normal"> AudioFileFormat</span><span class="symbol">.</span><span class="normal">Type</span><span class="symbol">.</span><span class="normal">WAVE</span><span class="symbol">,</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">File</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">));</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">            </span><span class="keyword">else</span><span class="normal"> </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">.</span><span class="function">endsWith</span><span class="symbol">(</span><span class="string">".au"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">||</span><span class="normal"> filename</span><span class="symbol">.</span><span class="function">endsWith</span><span class="symbol">(</span><span class="string">".AU"</span><span class="symbol">))</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">AudioSystem</span><span class="symbol">.</span><span class="function">isFileTypeSupported</span><span class="symbol">(</span><span class="normal">AudioFileFormat</span><span class="symbol">.</span><span class="normal">Type</span><span class="symbol">.</span><span class="normal">AU</span><span class="symbol">,</span><span class="normal"> ais</span><span class="symbol">))</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                    </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"saving to AU file format is not supported on this system"</span><span class="symbol">);</span>
+<span class="normal">                </span><span class="cbracket">}</span>
+<span class="normal">                AudioSystem</span><span class="symbol">.</span><span class="function">write</span><span class="symbol">(</span><span class="normal">ais</span><span class="symbol">,</span><span class="normal"> AudioFileFormat</span><span class="symbol">.</span><span class="normal">Type</span><span class="symbol">.</span><span class="normal">AU</span><span class="symbol">,</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">File</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">));</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">            </span><span class="keyword">else</span><span class="normal"> </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">.</span><span class="function">endsWith</span><span class="symbol">(</span><span class="string">".aif"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">||</span><span class="normal"> filename</span><span class="symbol">.</span><span class="function">endsWith</span><span class="symbol">(</span><span class="string">".aiff"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">||</span><span class="normal"> filename</span><span class="symbol">.</span><span class="function">endsWith</span><span class="symbol">(</span><span class="string">".AIF"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">||</span><span class="normal"> filename</span><span class="symbol">.</span><span class="function">endsWith</span><span class="symbol">(</span><span class="string">".AIFF"</span><span class="symbol">))</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">AudioSystem</span><span class="symbol">.</span><span class="function">isFileTypeSupported</span><span class="symbol">(</span><span class="normal">AudioFileFormat</span><span class="symbol">.</span><span class="normal">Type</span><span class="symbol">.</span><span class="normal">AIFF</span><span class="symbol">,</span><span class="normal"> ais</span><span class="symbol">))</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                    </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"saving to AIFF file format is not supported on this system"</span><span class="symbol">);</span>
+<span class="normal">                </span><span class="cbracket">}</span>
+<span class="normal">                AudioSystem</span><span class="symbol">.</span><span class="function">write</span><span class="symbol">(</span><span class="normal">ais</span><span class="symbol">,</span><span class="normal"> AudioFileFormat</span><span class="symbol">.</span><span class="normal">Type</span><span class="symbol">.</span><span class="normal">AIFF</span><span class="symbol">,</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">File</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">));</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">            </span><span class="keyword">else</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"file extension for saving must be .wav, .au, or .aif"</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">catch</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">IOException</span><span class="normal"> ioe</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">(</span><span class="string">"unable to save file '"</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> filename </span><span class="symbol">+</span><span class="normal"> </span><span class="string">"'"</span><span class="symbol">,</span><span class="normal"> ioe</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Stops the playing of all audio files in background threads.</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">synchronized</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">stopInBackground</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">BackgroundRunnable</span><span class="normal"> runnable </span><span class="symbol">:</span><span class="normal"> backgroundRunnables</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            runnable</span><span class="symbol">.</span><span class="function">stop</span><span class="symbol">();</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        backgroundRunnables</span><span class="symbol">.</span><span class="function">clear</span><span class="symbol">();</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Plays an audio file (in WAVE, AU, AIFF, or MIDI format) in its own</span>
+<span class="comment">     * background thread. Multiple audio files can be played simultaneously.</span>
+<span class="comment">     * The file extension must be either {</span><span class="type">@code</span><span class="comment"> .wav}, {</span><span class="type">@code</span><span class="comment"> .au},</span>
+<span class="comment">     * or {</span><span class="type">@code</span><span class="comment"> .aiff}.</span>
+<span class="comment">     *</span>
+<span class="comment">     * </span><span class="type">@param</span><span class="comment"> filename the name of the audio file</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if unable to play {</span><span class="type">@code</span><span class="comment"> filename}</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if {</span><span class="type">@code</span><span class="comment"> filename} is {</span><span class="type">@code</span><span class="comment"> null}</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">synchronized</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">playInBackground</span><span class="symbol">(</span><span class="keyword">final</span><span class="normal"> </span><span class="usertype">String</span><span class="normal"> filename</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="usertype">BackgroundRunnable</span><span class="normal"> runnable </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">BackgroundRunnable</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="keyword">new</span><span class="normal"> </span><span class="function">Thread</span><span class="symbol">(</span><span class="normal">runnable</span><span class="symbol">).</span><span class="function">start</span><span class="symbol">();</span>
+<span class="normal">        backgroundRunnables</span><span class="symbol">.</span><span class="function">add</span><span class="symbol">(</span><span class="normal">runnable</span><span class="symbol">);</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">class</span><span class="normal"> </span><span class="classname">BackgroundRunnable</span><span class="normal"> </span><span class="keyword">implements</span><span class="normal"> Runnable </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">volatile</span><span class="normal"> </span><span class="type">boolean</span><span class="normal"> exit </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">false</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="usertype">String</span><span class="normal"> filename</span><span class="symbol">;</span>
+
+<span class="normal">        </span><span class="keyword">public</span><span class="normal"> </span><span class="function">BackgroundRunnable</span><span class="symbol">(</span><span class="usertype">String</span><span class="normal"> filename</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">this</span><span class="symbol">.</span><span class="normal">filename </span><span class="symbol">=</span><span class="normal"> filename</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="comment">// https://www3.ntu.edu.sg/home/ehchua/programming/java/J8c_PlayingSound.html</span>
+<span class="normal">        </span><span class="comment">// play a wav or aif file</span>
+<span class="normal">        </span><span class="comment">// javax.sound.sampled.Clip fails for long clips (on some systems)</span>
+<span class="normal">        </span><span class="keyword">public</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">run</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="usertype">AudioInputStream</span><span class="normal"> ais </span><span class="symbol">=</span><span class="normal"> </span><span class="function">getAudioInputStreamFromFile</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">);</span>
+
+<span class="normal">            </span><span class="usertype">SourceDataLine</span><span class="normal"> line </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">;</span>
+<span class="normal">            </span><span class="type">int</span><span class="normal"> BUFFER_SIZE </span><span class="symbol">=</span><span class="normal"> </span><span class="number">4096</span><span class="symbol">;</span><span class="normal"> </span><span class="comment">// 4K buffer</span>
+
+<span class="normal">            </span><span class="keyword">try</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="usertype">AudioFormat</span><span class="normal"> audioFormat </span><span class="symbol">=</span><span class="normal"> ais</span><span class="symbol">.</span><span class="function">getFormat</span><span class="symbol">();</span>
+<span class="normal">                DataLine</span><span class="symbol">.</span><span class="usertype">Info</span><span class="normal"> info </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> DataLine</span><span class="symbol">.</span><span class="function">Info</span><span class="symbol">(</span><span class="normal">SourceDataLine</span><span class="symbol">.</span><span class="keyword">class</span><span class="symbol">,</span><span class="normal"> audioFormat</span><span class="symbol">);</span>
+<span class="normal">                line </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">SourceDataLine</span><span class="symbol">)</span><span class="normal"> AudioSystem</span><span class="symbol">.</span><span class="function">getLine</span><span class="symbol">(</span><span class="normal">info</span><span class="symbol">);</span>
+<span class="normal">                line</span><span class="symbol">.</span><span class="function">open</span><span class="symbol">(</span><span class="normal">audioFormat</span><span class="symbol">);</span>
+<span class="normal">                line</span><span class="symbol">.</span><span class="function">start</span><span class="symbol">();</span>
+<span class="normal">                </span><span class="type">byte</span><span class="symbol">[]</span><span class="normal"> samples </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="type">byte</span><span class="symbol">[</span><span class="normal">BUFFER_SIZE</span><span class="symbol">];</span>
+<span class="normal">                </span><span class="type">int</span><span class="normal"> count</span><span class="symbol">;</span>
+<span class="normal">                </span><span class="keyword">while</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">exit </span><span class="symbol">&amp;&amp;</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">count </span><span class="symbol">=</span><span class="normal"> ais</span><span class="symbol">.</span><span class="function">read</span><span class="symbol">(</span><span class="normal">samples</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> BUFFER_SIZE</span><span class="symbol">))</span><span class="normal"> </span><span class="symbol">!=</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                    line</span><span class="symbol">.</span><span class="function">write</span><span class="symbol">(</span><span class="normal">samples</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> count</span><span class="symbol">);</span>
+<span class="normal">                </span><span class="cbracket">}</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">            </span><span class="keyword">catch</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">IOException </span><span class="symbol">|</span><span class="normal"> </span><span class="usertype">LineUnavailableException</span><span class="normal"> e</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                System</span><span class="symbol">.</span><span class="normal">out</span><span class="symbol">.</span><span class="function">println</span><span class="symbol">(</span><span class="normal">e</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">            </span><span class="keyword">finally</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">line </span><span class="symbol">!=</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                    line</span><span class="symbol">.</span><span class="function">drain</span><span class="symbol">();</span>
+<span class="normal">                    line</span><span class="symbol">.</span><span class="function">close</span><span class="symbol">();</span>
+<span class="normal">                </span><span class="cbracket">}</span>
+<span class="normal">                backgroundRunnables</span><span class="symbol">.</span><span class="function">remove</span><span class="symbol">(</span><span class="keyword">this</span><span class="symbol">);</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="keyword">public</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">stop</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            exit </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">true</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Loops an audio file (in WAVE, AU, AIFF, or MIDI format) in its</span>
+<span class="comment">     * own background thread.</span>
+<span class="comment">     *</span>
+<span class="comment">     * </span><span class="type">@param</span><span class="comment"> filename the name of the audio file</span>
+<span class="comment">     * </span><span class="type">@throws</span><span class="comment"> IllegalArgumentException if {</span><span class="type">@code</span><span class="comment"> filename} is {</span><span class="type">@code</span><span class="comment"> null}</span>
+<span class="comment">     * </span><span class="type">@deprecated</span><span class="comment"> to be removed in a future update, as it doesn't interact</span>
+<span class="comment">     *             well with {</span><span class="type">@link</span><span class="comment"> #playInBackground(String filename)} or</span>
+<span class="comment">     *             {</span><span class="type">@link</span><span class="comment"> #stopInBackground()}.</span>
+<span class="comment">     */</span>
+<span class="normal">    @Deprecated</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">synchronized</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">loopInBackground</span><span class="symbol">(</span><span class="usertype">String</span><span class="normal"> filename</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename </span><span class="symbol">==</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">)</span><span class="normal"> </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalArgumentException</span><span class="symbol">();</span>
+
+<span class="normal">        </span><span class="keyword">final</span><span class="normal"> </span><span class="usertype">AudioInputStream</span><span class="normal"> ais </span><span class="symbol">=</span><span class="normal"> </span><span class="function">getAudioInputStreamFromFile</span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">);</span>
+
+<span class="normal">        </span><span class="keyword">try</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="usertype">Clip</span><span class="normal"> clip </span><span class="symbol">=</span><span class="normal"> AudioSystem</span><span class="symbol">.</span><span class="function">getClip</span><span class="symbol">();</span>
+<span class="normal">            </span><span class="comment">// Clip clip = (Clip) AudioSystem.getLine(new Line.Info(Clip.class));</span>
+<span class="normal">            clip</span><span class="symbol">.</span><span class="function">open</span><span class="symbol">(</span><span class="normal">ais</span><span class="symbol">);</span>
+<span class="normal">            clip</span><span class="symbol">.</span><span class="function">loop</span><span class="symbol">(</span><span class="normal">Clip</span><span class="symbol">.</span><span class="normal">LOOP_CONTINUOUSLY</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">catch</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">IOException </span><span class="symbol">|</span><span class="normal"> </span><span class="usertype">LineUnavailableException</span><span class="normal"> e</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            System</span><span class="symbol">.</span><span class="normal">out</span><span class="symbol">.</span><span class="function">println</span><span class="symbol">(</span><span class="normal">e</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="comment">// keep JVM open</span>
+<span class="normal">        </span><span class="keyword">new</span><span class="normal"> </span><span class="function">Thread</span><span class="symbol">(</span><span class="keyword">new</span><span class="normal"> </span><span class="function">Runnable</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">public</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">run</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                </span><span class="keyword">while</span><span class="normal"> </span><span class="symbol">(</span><span class="keyword">true</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                    </span><span class="keyword">try</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                       Thread</span><span class="symbol">.</span><span class="function">sleep</span><span class="symbol">(</span><span class="number">1000</span><span class="symbol">);</span>
+<span class="normal">                    </span><span class="cbracket">}</span>
+<span class="normal">                    </span><span class="keyword">catch</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">InterruptedException</span><span class="normal"> e</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">                        System</span><span class="symbol">.</span><span class="normal">out</span><span class="symbol">.</span><span class="function">println</span><span class="symbol">(</span><span class="normal">e</span><span class="symbol">);</span>
+<span class="normal">                    </span><span class="cbracket">}</span>
+<span class="normal">                </span><span class="cbracket">}</span>
+<span class="normal">            </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="cbracket">}</span><span class="symbol">).</span><span class="function">start</span><span class="symbol">();</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Turns on audio recording.</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">startRecording</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">isRecording</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            recordedSamples </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">QueueOfDoubles</span><span class="symbol">();</span>
+<span class="normal">            isRecording </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">true</span><span class="symbol">;</span>
+<span class="normal">         </span><span class="cbracket">}</span>
+<span class="normal">         </span><span class="keyword">else</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">             </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalStateException</span><span class="symbol">(</span><span class="string">"startRecording() must not be called twice in a row"</span><span class="symbol">);</span>
+<span class="normal">         </span><span class="cbracket">}</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Turns off audio recording and returns the recorded samples.</span>
+<span class="comment">     * </span><span class="type">@return</span><span class="comment"> the array of recorded samples</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> </span><span class="function">stopRecording</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">isRecording</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> results </span><span class="symbol">=</span><span class="normal"> recordedSamples</span><span class="symbol">.</span><span class="function">toArray</span><span class="symbol">();</span>
+<span class="normal">            isRecording </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">false</span><span class="symbol">;</span>
+<span class="normal">            recordedSamples </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">null</span><span class="symbol">;</span>
+<span class="normal">            </span><span class="keyword">return</span><span class="normal"> results</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">        </span><span class="keyword">else</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">throw</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="function">IllegalStateException</span><span class="symbol">(</span><span class="string">"stopRecording() must be called after calling startRecording()"</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+
+<span class="normal">   </span><span class="comment">/***************************************************************************</span>
+<span class="comment">    * Helper class for reading and recording audio.</span>
+<span class="comment">    ***************************************************************************/</span>
+<span class="normal">    </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">class</span><span class="normal"> </span><span class="classname">QueueOfDoubles</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="keyword">private</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="keyword">final</span><span class="normal"> </span><span class="type">int</span><span class="normal"> INIT_CAPACITY </span><span class="symbol">=</span><span class="normal"> </span><span class="number">16</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="keyword">private</span><span class="normal"> </span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> a</span><span class="symbol">;</span><span class="normal">   </span><span class="comment">// array of doubles</span>
+<span class="normal">        </span><span class="keyword">private</span><span class="normal"> </span><span class="type">int</span><span class="normal"> n</span><span class="symbol">;</span><span class="normal">        </span><span class="comment">// number of items in queue</span>
+
+<span class="normal">        </span><span class="comment">// create an empty queue</span>
+<span class="normal">        </span><span class="keyword">public</span><span class="normal"> </span><span class="function">QueueOfDoubles</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            a </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="type">double</span><span class="symbol">[</span><span class="normal">INIT_CAPACITY</span><span class="symbol">];</span>
+<span class="normal">            n </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="comment">// resize the underlying array holding the items</span>
+<span class="normal">        </span><span class="keyword">private</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">resize</span><span class="symbol">(</span><span class="type">int</span><span class="normal"> capacity</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">assert</span><span class="normal"> capacity </span><span class="symbol">&gt;=</span><span class="normal"> n</span><span class="symbol">;</span>
+<span class="normal">            </span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> temp </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="type">double</span><span class="symbol">[</span><span class="normal">capacity</span><span class="symbol">];</span>
+<span class="normal">            </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> n</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span>
+<span class="normal">                temp</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> a</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">];</span>
+<span class="normal">            a </span><span class="symbol">=</span><span class="normal"> temp</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="comment">// enqueue item onto the queue</span>
+<span class="normal">        </span><span class="keyword">public</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">enqueue</span><span class="symbol">(</span><span class="type">double</span><span class="normal"> item</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">n </span><span class="symbol">==</span><span class="normal"> a</span><span class="symbol">.</span><span class="normal">length</span><span class="symbol">)</span><span class="normal"> </span><span class="function">resize</span><span class="symbol">(</span><span class="number">2</span><span class="symbol">*</span><span class="normal">a</span><span class="symbol">.</span><span class="normal">length</span><span class="symbol">);</span><span class="normal">    </span><span class="comment">// double length of array if necessary</span>
+<span class="normal">            a</span><span class="symbol">[</span><span class="normal">n</span><span class="symbol">++]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> item</span><span class="symbol">;</span><span class="normal">                            </span><span class="comment">// add item</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+
+<span class="normal">        </span><span class="comment">// number of items in queue</span>
+<span class="normal">        </span><span class="keyword">public</span><span class="normal"> </span><span class="type">int</span><span class="normal"> </span><span class="function">size</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="keyword">return</span><span class="normal"> n</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="comment">// return the items as an array of length n</span>
+<span class="normal">        </span><span class="keyword">public</span><span class="normal"> </span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> </span><span class="function">toArray</span><span class="symbol">()</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            </span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> result </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="type">double</span><span class="symbol">[</span><span class="normal">n</span><span class="symbol">];</span>
+<span class="normal">            </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> n</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span>
+<span class="normal">                result</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> a</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">];</span>
+<span class="normal">            </span><span class="keyword">return</span><span class="normal"> result</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">    </span><span class="cbracket">}</span>
+
+
+<span class="normal">    </span><span class="comment">/**</span>
+<span class="comment">     * Test client - plays some sound files and concert A.</span>
+<span class="comment">     *</span>
+<span class="comment">     * </span><span class="type">@param</span><span class="comment"> args the command-line arguments (none should be specified)</span>
+<span class="comment">     */</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">main</span><span class="symbol">(</span><span class="normal">String</span><span class="symbol">[]</span><span class="normal"> args</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="comment">// 440 Hz for 1 sec</span>
+<span class="normal">        </span><span class="type">double</span><span class="normal"> freq </span><span class="symbol">=</span><span class="normal"> </span><span class="number">440.0</span><span class="symbol">;</span>
+<span class="normal">        </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;=</span><span class="normal"> StdAudio</span><span class="symbol">.</span><span class="normal">SAMPLE_RATE</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            StdAudio</span><span class="symbol">.</span><span class="function">play</span><span class="symbol">(</span><span class="number">0.5</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> Math</span><span class="symbol">.</span><span class="function">sin</span><span class="symbol">(</span><span class="number">2</span><span class="symbol">*</span><span class="normal">Math</span><span class="symbol">.</span><span class="normal">PI </span><span class="symbol">*</span><span class="normal"> freq </span><span class="symbol">*</span><span class="normal"> i </span><span class="symbol">/</span><span class="normal"> StdAudio</span><span class="symbol">.</span><span class="normal">SAMPLE_RATE</span><span class="symbol">));</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+
+<span class="normal">        </span><span class="usertype">String</span><span class="normal"> base </span><span class="symbol">=</span><span class="normal"> </span><span class="string">"https://introcs.cs.princeton.edu/java/stdlib/"</span><span class="symbol">;</span>
+
+<span class="normal">        </span><span class="comment">// play some sound files</span>
+<span class="normal">        StdAudio</span><span class="symbol">.</span><span class="function">play</span><span class="symbol">(</span><span class="normal">base </span><span class="symbol">+</span><span class="normal"> </span><span class="string">"test.wav"</span><span class="symbol">);</span><span class="normal">          </span><span class="comment">// helicopter</span>
+<span class="normal">        StdAudio</span><span class="symbol">.</span><span class="function">play</span><span class="symbol">(</span><span class="normal">base </span><span class="symbol">+</span><span class="normal"> </span><span class="string">"test-22050.wav"</span><span class="symbol">);</span><span class="normal">    </span><span class="comment">// twenty-four</span>
+<span class="normal">        StdAudio</span><span class="symbol">.</span><span class="function">play</span><span class="symbol">(</span><span class="normal">base </span><span class="symbol">+</span><span class="normal"> </span><span class="string">"test.midi"</span><span class="symbol">);</span><span class="normal">         </span><span class="comment">// a Mozart measure</span>
+
+<span class="normal">        </span><span class="comment">// a sound loop</span>
+<span class="normal">        </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> </span><span class="number">10</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            StdAudio</span><span class="symbol">.</span><span class="function">play</span><span class="symbol">(</span><span class="normal">base </span><span class="symbol">+</span><span class="normal"> </span><span class="string">"BaseDrum.wav"</span><span class="symbol">);</span>
+<span class="normal">            StdAudio</span><span class="symbol">.</span><span class="function">play</span><span class="symbol">(</span><span class="normal">base </span><span class="symbol">+</span><span class="normal"> </span><span class="string">"SnareDrum.wav"</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="comment">// need to call this in non-interactive stuff so the program doesn't terminate</span>
+<span class="normal">        </span><span class="comment">// until all the sound leaves the speaker.</span>
+<span class="normal">        StdAudio</span><span class="symbol">.</span><span class="function">drain</span><span class="symbol">();</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+<span class="cbracket">}</span>
+</tt></pre>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-10811519-1");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+</body>
+
+<p><br><address><small>
+Copyright &copy; 2000&ndash;2022, Robert Sedgewick and Kevin Wayne.
+<br>Last updated: Thu Sep  5 03:42:53 AM EDT 2024.
+</small></address>
+
+</html>

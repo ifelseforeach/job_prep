@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang = "en">
+
+<head>
+
+<link rel="shortcut icon" href="https://introcs.cs.princeton.edu/favicon.ico">
+<link rel="stylesheet"    href="https://introcs.cs.princeton.edu/java.css" type="text/css">
+
+<title>Tone.java</title>
+
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<meta NAME="AUTHOR" CONTENT="Robert Sedgewick and Kevin Wayne">
+<meta NAME="DESCRIPTION" CONTENT="Tone code in Java">
+<meta NAME="TITLE" CONTENT="Tone code in Java">
+<meta NAME="KEYWORDS" CONTENT="Tone,java,programming,computer science,algorithm,program,code">
+<meta NAME="ROBOTS" CONTENT="INDEX,FOLLOW">
+
+</head>
+
+
+<body>
+<center><h1>Tone.java</h1></center><p><br>
+
+Below is the syntax highlighted version of <a href = "Tone.java">Tone.java</a>
+from <a href = "https://introcs.cs.princeton.edu/java/15inout">&#167;1.5 Input and Output</a>.
+<p><br>
+
+<!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span class="comment">/******************************************************************************</span>
+<span class="comment"> *  Compilation:  javac-introcs Tone.java</span>
+<span class="comment"> *  Execution:    java-introcs Tone hz seconds</span>
+<span class="comment"> *  Dependencies: StdAudio.java</span>
+<span class="comment"> *</span>
+<span class="comment"> *  This program takes the frequency and duration from the command line,</span>
+<span class="comment"> *  and plays a sine wave of the given frequency for the given duration.</span>
+<span class="comment"> *</span>
+<span class="comment"> *  % java-introcs Tone 440.0 1.5</span>
+<span class="comment"> *</span>
+<span class="comment"> ******************************************************************************/</span>
+
+<span class="keyword">public</span><span class="normal"> </span><span class="keyword">class</span><span class="normal"> </span><span class="classname">Tone</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">    </span><span class="keyword">public</span><span class="normal"> </span><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="function">main</span><span class="symbol">(</span><span class="normal">String</span><span class="symbol">[]</span><span class="normal"> args</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">        </span><span class="type">double</span><span class="normal"> hz       </span><span class="symbol">=</span><span class="normal"> Double</span><span class="symbol">.</span><span class="function">parseDouble</span><span class="symbol">(</span><span class="normal">args</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">]);</span><span class="normal">    </span><span class="comment">// frequency in Hz</span>
+<span class="normal">        </span><span class="type">double</span><span class="normal"> duration </span><span class="symbol">=</span><span class="normal"> Double</span><span class="symbol">.</span><span class="function">parseDouble</span><span class="symbol">(</span><span class="normal">args</span><span class="symbol">[</span><span class="number">1</span><span class="symbol">]);</span><span class="normal">    </span><span class="comment">// duration in seconds</span>
+
+<span class="normal">        </span><span class="type">int</span><span class="normal"> n </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">StdAudio</span><span class="symbol">.</span><span class="normal">SAMPLE_RATE </span><span class="symbol">*</span><span class="normal"> duration</span><span class="symbol">);</span>
+
+<span class="normal">        </span><span class="comment">// build sine wave with desired frequency</span>
+<span class="normal">        </span><span class="type">double</span><span class="symbol">[]</span><span class="normal"> a </span><span class="symbol">=</span><span class="normal"> </span><span class="keyword">new</span><span class="normal"> </span><span class="type">double</span><span class="symbol">[</span><span class="normal">n</span><span class="symbol">+</span><span class="number">1</span><span class="symbol">];</span>
+<span class="normal">        </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;=</span><span class="normal"> n</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">            a</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> Math</span><span class="symbol">.</span><span class="function">sin</span><span class="symbol">(</span><span class="number">2</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> Math</span><span class="symbol">.</span><span class="normal">PI </span><span class="symbol">*</span><span class="normal"> i </span><span class="symbol">*</span><span class="normal"> hz </span><span class="symbol">/</span><span class="normal"> StdAudio</span><span class="symbol">.</span><span class="normal">SAMPLE_RATE</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="cbracket">}</span>
+
+<span class="normal">        </span><span class="comment">// play using standard audio</span>
+<span class="normal">        StdAudio</span><span class="symbol">.</span><span class="function">play</span><span class="symbol">(</span><span class="normal">a</span><span class="symbol">);</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+<span class="cbracket">}</span>
+</tt></pre>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-10811519-1");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+</body>
+
+<p><br><address><small>
+Copyright &copy; 2000&ndash;2017, Robert Sedgewick and Kevin Wayne.
+<br>Last updated: Fri May 10 11:00:41 EDT 2019.
+</small></address>
+
+</html>
