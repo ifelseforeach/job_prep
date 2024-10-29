@@ -5,6 +5,9 @@ mkdir
 cd ..
 cd name
 
+#check files and folders
+dir
+
  git remote add origin https://github.com/ifelseforeach/job_prep
  
 #cloning a dir from Github/job_prep
@@ -12,7 +15,7 @@ User@DESKTOP-V7DDD7C MINGW64 /c/Job/Github
 $ git clone https://github.com/ifelseforeach/job_prep.git
 
 #Git add directories
-User@DESKTOP-V7DDD7CUser@DESKTOP-V7DDD7C MINGW64 /c/Job/Github/job_prep (main)
+User@DESKTOP-V7DDD7CUser@DESKTOP-V7DDD7C MINGW64 cd. (main)
 $ git add dir_name
 
 #Git add all dirrectories
