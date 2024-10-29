@@ -87,17 +87,20 @@
     "Application.HelloWorld.executor": "Debug",
     "Application.RandomWord.executor": "Debug",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/Job/Github/job_prep/study/Algorithms_1_Princeton,_Sedgewick/hello"
+    "last_opened_file_path": "C:/Job/Github/job_prep/study/Algorithms_1_Princeton,_Sedgewick/hello",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0"
   }
 }]]></component>
   <component name="RunManager" selected="Application.RandomWord">
     <configuration name="HelloWorld" type="Application" factoryName="Application">
-      <option name="MAIN_CLASS_NAME" value="HelloWorld" />
+      <option name="MAIN_CLASS_NAME" value="Week1.HelloWorld" />
       <module name="Algorithms, Part I" />
       <method v="2" />
     </configuration>
     <configuration name="RandomWord" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="RandomWord" />
+      <option name="MAIN_CLASS_NAME" value="Week1.RandomWord" />
       <module name="Algorithms, Part I" />
       <option name="PROGRAM_PARAMETERS" value="tails head" />
       <method v="2" />
