@@ -1,4 +1,4 @@
-/* *****************************************************************************
+package Week2;/* *****************************************************************************
  *  Name:              Ada Lovelace
  *  Coursera User ID:  123456
  *  Last modified:     October 16, 1842
@@ -74,7 +74,7 @@ public class Percolation {
             if (isTopConnected(row, col - 1))
                 parentWithTop = id[row][col - 1];
             if (isBottomConnected(row, col - 1))
-                parentWithBottom = [row][col - 1];
+                parentWithBottom = id[row][col - 1];
             // setNewRoot(row, col - 1, row, col);
         }
         if (col < this.n - 1 && isOpen[row][col + 1]) {
@@ -86,7 +86,7 @@ public class Percolation {
             // setNewRoot(row, col, row, col + 1);
         }
 
-        if (parentWithTop!=0 && parentWithBottom!=0)
+        if (parentWithTop != 0 && parentWithBottom != 0)
             this.isPercolated = true;
         // if (isTop)
 
